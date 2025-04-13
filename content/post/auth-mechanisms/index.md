@@ -8,7 +8,6 @@ tags = ['Blockchain', 'Ethereum', 'Stellar', 'Solana']
 images = ['images/cover.jpg']
 ShowShareButtons = true
 ShowToc = true
-tocopen = true
 +++
 The EIP-7702 as part of Pectra upgrade is coming soon, and one of its promises is to fix a long-standing UX issue: swapping a token on a DEX requires two transactions - one to approve the token transfer and another to execute the swap. For regular Ethereum users, this two-step process is an annoyance, for newcomers, it's confusing. But here’s the thing - this problem isn’t universal.
 
