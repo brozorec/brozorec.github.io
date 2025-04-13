@@ -51,3 +51,7 @@ theme = 'paperMod'
 [taxonomies]
   series = 'series'
   tag = 'tags'
+
+[caches]
+    [caches.images]
+        dir = ':cacheDir/images'
