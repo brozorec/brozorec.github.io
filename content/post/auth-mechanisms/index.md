@@ -158,11 +158,11 @@ Solana’s approach is also quite intuitive and straightforward. By relying on t
 
 ### 2.3 Ethereum
 
-Before EIP-7702, fee sponsoring was a complex subject, since it wasn’t natively supported. Various approaches existed, such as meta-transactions ([EIP-2771](https://eips.ethereum.org/EIPS/eip-2771)) or custom smart contract logic for signature verification (permits). However, these solutions are not seamless, as every smart contract must provision for this feature, often with different implementation choices, leading to reduced interoperability. 
+EIP-7702 is just one step in Ethereum’s broader move toward Account Abstraction and its adoption will be a important milestone. EIP-4337 is another prominent proposal shaping the future of that area, but we won’t touch on it here.
 
 In a nutshell, the EIP-7702 introduces a new type of transaction “type 4” that enables setting code for an EOA account (Externally Owned Account or a wallet account, controlled by private keys). Essentially, it allows an EOA to "borrow" code from an another contract and executes it.
 
-Back to the practical side, let’s see how the EIP-7702 enables fee sponsoring. Well, before it can work, a few conditions must be met:
+Let’s see on the practical side how the EIP-7702 enables fee sponsoring. Well, before it can work, a few conditions must be met:
 
 1. A trusted external contract whose code will be borrowed must be already deployed. We shall name it the [Delegate contract](https://github.com/brozorec/auth-mechanisms/blob/main/ethereum/src/Delegate.sol).
 2. The user sings the new transaction type (this happens only once)
