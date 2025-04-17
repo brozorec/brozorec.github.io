@@ -103,7 +103,7 @@ Here are the steps to follow:
 
 5. Divide the full 5-torsion group into $6$ subgroups ($r + 1$). Note that the point at infinity is common across all subgroups. As you might have guessed, we're close to finding the grail: $\mathbb{G}_1$ and $\mathbb{G}_2$ are among those subgroups. It’s worth noting here that one of these subgroups (top center) contains the same points as some from the non-extended curve.
 
-![Pairings-Page-3.drawio (1)](https://hackmd.io/_uploads/SkWZ-QoB0.png)
+![Pairings-Filter](images/Filter.png)
 
 
 
@@ -159,7 +159,7 @@ Let’s demonstrate with $R = (7, 11)$:
 
 $R_0 + R_1 + R_2 + R_3 = (7, 2) = (7, 11) \ast k = (7, 11) \ast 4$
 
-![Pairings-G1.drawio (1)](https://hackmd.io/_uploads/SyAMp9jBA.png)
+![Pairings-G1](images/G1.png)
 
 ### Subgroup G2
 
@@ -175,7 +175,7 @@ $R_0 + R_1 + R_2 + R_3 = (7, 2) = (7, 11) \ast k = (7, 11) \ast 4$
 
 2. Summing up these intermediary points using the group addition law $S_0 + S_1 + S_2 + S_3$ results in  $\mathcal{O}$, the infinity point. Applying the Trace map to the other $4$ points from the subgroup yields the same result. Congratulations, we just found the points from $\mathbb{G}_2$.
 
-![Pairings-G2.drawio](https://hackmd.io/_uploads/SkReo5sBR.png)
+![Pairings-G2](images/G2.png)
 
 ### Conclusion
 
