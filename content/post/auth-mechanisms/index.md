@@ -13,7 +13,7 @@ The EIP-7702 as part of Pectra upgrade is coming soon, and one of its promises i
 
 The idea for this article started from a simple research about why, in other ecosystems, token approvals are a non-issue, and evolved into a comparison of the authorization mechanisms of three blockchains: **Ethereum, Stellar Soroban and Solana**.
 
-This exploration will lead us to **inspect and compare the transaction structures** across the three blockchains. Along the way, we will define a few scenarios in transaction handling - analyzing who can sign what and when. 
+To understand these differences more clearly, we’ll look closely and **compare the transaction structures** across the three blockchains. Along the way, we will define a few scenarios in transaction handling - analyzing who can sign what and when. 
 
 The main focus will be how authorizations are reflected on a transaction level, so we won’t delve into programming languages or frameworks. If you’re familiar with one smart contract platform, you can extrapolate that knowledge to another - while syntax and tooling differ, the core principles remain comparable. To keep things practical, the smart contracts we analyze will be simple.
 
@@ -27,12 +27,11 @@ We will deploy two similar smart contracts on each of the chains and thanks to t
 Here, we are also going to see whether we can decouple the owner from the invoker, i.e. the owner only signs and someone else submits the transaction and pays the transaction fee.
 2. `Wrapper` contract - it’s a dummy contract that forwards calls to `Counter`. When someone calls a function on `Wrapper`, it invokes the increment function on `Counter`, which requires authorization from the owner.
 
+In the following sections, we will dive into each of the above cases on all three chains in parallel and present only partial snippets. Please note that some of the fields from the transactions are omitted or re-ordered for readability. All the code, including the smart contracts and the deployment scripts, can be found in this [GitHub repo](https://github.com/brozorec/auth-mechanisms). To help us better visualize, the snippets from Ethereum are with a solarized-light background, Stellar’s are with a dark-sepia and Solana’s with a dark-blue.
 
 **Note about Ethereum**
 
-We assume Pectra is live and will explore only the practical outcomes of the EIP-7702 and the way it affects the user flow and transaction structure. For more details on this topic check [here](https://safe.global/blog/eip-7702-smart-accounts-ethereum-pectra-upgrade) and [here](https://www.youtube.com/watch?v=ZFN2bYt9gNE).
-
-In the following sections, we will dive into each of the above cases on all three chains in parallel and present only partial snippets. Please note that some of the fields from the transactions are omitted or re-ordered for readability. All the code, including the smart contracts and the deployment scripts, can be found in this [GitHub repo](https://github.com/brozorec/auth-mechanisms). To help us better visualize, the snippets from Ethereum are with a solarized-light background, Stellar’s are with a dark-sepia and Solana’s with a dark-blue.
+We assume Pectra is live and will explore only the practical outcomes of the EIP-7702 and the way it affects the user flow and transaction structure. For more details on this topic check [here](https://safe.global/blog/eip-7702-smart-accounts-ethereum-pectra-upgrade) and [here](https://www.youtube.com/watch?v=ZFN2bYt9gNE). One of the sections below concerns fees sponsorship and EIP-4337 already tackles this subject. However, we will keep our focus solely on EIP-7702.
 
 ## 1. Counter Contract: Simple Call
 
@@ -253,9 +252,13 @@ Compared to the previous transaction on Solana, we can see there is just another
 
 Cross-contract call forwarding with a partial authorization is not natively supported on Ethereum. When a contract calls a function on another contract, a new call frame is created and only the caller’s authorization is being passed through `msg.sender`. 
 
-When `Wrapper` calls `Counter`, `msg.sender` in `increment()` is no longer the owner or the sponsor, but the `Wrapper` contract itself. This limitation makes impossible to reproduce the same example as for Stellar and Solana. We can think of a workaround by making `increment()` check the authorization with a custom signature.
+When `Wrapper` calls `Counter`, `msg.sender` in `increment()` is no longer the owner or the sponsor, but the `Wrapper` contract itself. This limitation makes impossible to reproduce the same example as for Stellar and Solana. We can think of a workaround by making `increment()` check the authorization with a custom signature, but it's out of the scope of this exploration.
 
-We briefly explored EIP-7702 in the context of transaction sponsoring above. EIP-7702 is just one step in Ethereum’s broader move toward Account Abstraction. Its adoption will be a important milestone, but further improvements are expected, with [EIP-4337](https://eips.ethereum.org/EIPS/eip-4337) being the most prominent proposal shaping the future of that area. Although EIP-4337 doesn’t address directly the point of study of this section, we mention it here because it will provide further benefits to real-world use cases we touched on: sponsoring and operations batching (which, for example, will remove the need for 2 transactions when swapping a token). EIP-4337 is still a draft, but you can check the [OpenZeppelin library](https://docs.openzeppelin.com/community-contracts/0.0.1/account-abstraction) that provides multiple contracts for Account Abstraction following this standard.
+### Takeaways
+
+- **Stellar** stands out with its support for partial authorization of invocation trees. A user can sign only the specific call they intend to authorize, even if it's deeply nested in a call sequence.
+- **Solana** handles cross-program invocations (CPIs) by inheriting permissions from the caller. It’s simple and efficient, but offers less fine-grained control than Stellar.
+- **Ethereum** lacks native support for partial authorization across contract calls. Each contract relies on `msg.sender`, meaning complex flows often require additional logic.
 
 ## Conclusion
 
