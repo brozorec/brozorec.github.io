@@ -13,7 +13,7 @@ The EIP-7702 as part of Pectra upgrade is already live, and one of its promises 
 
 The idea for this article started from a simple research about why, in other ecosystems, token approvals are a non-issue, and evolved into a comparison of the authorization mechanisms of three blockchains: **Ethereum, Stellar Soroban and Solana**.
 
-To understand these differences more clearly, we’ll look closely and **compare the transaction structures** across the three blockchains. Along the way, we will define a few scenarios in transaction handling - analyzing who can sign what and when. 
+To understand these differences more clearly, we’ll look closely and **compare the transaction structures** across the three blockchains. Along the way, we will define a few scenarios in transaction handling - analyzing who can sign what and when.
 
 Very often, when working within a particular ecosystem, we build up biases about what's possible and begin to take certain issues or bottlenecks as the norm. This article aims to broaden readers' perspectives by showing how different chains approach similar problems.
 
@@ -23,7 +23,7 @@ Very often, when working within a particular ecosystem, we build up biases about
 
 We will deploy two similar smart contracts on each of the chains and thanks to them we are going to explore different types of interactions:
 
-1. `Counter` contract - one user is the owner of the contract and only they are authorized to call an increment function. 
+1. `Counter` contract - one user is the owner of the contract and only they are authorized to call an increment function.
 Here, we are also going to see whether we can decouple the owner from the invoker, i.e. the owner only signs and someone else submits the transaction and pays the transaction fee.
 2. `Wrapper` contract - it’s a dummy contract that forwards calls to `Counter`. When someone calls a function on `Wrapper`, it invokes the increment function on `Counter`, which requires authorization from the owner.
 
@@ -39,7 +39,7 @@ Here is how the `Counter` contract looks for each chain:
 - [Stellar](https://github.com/brozorec/auth-mechanisms/blob/main/stellar/contracts/counter/src/lib.rs)
 - [Solana](https://github.com/brozorec/auth-mechanisms/blob/main/solana/programs/counter/src/lib.rs)
 
-We are going to submit a transaction with a call to `increment()` on each of the chains and inspect the structure of the content we are sending over. 
+We are going to submit a transaction with a call to `increment()` on each of the chains and inspect the structure of the content we are sending over.
 
 ### 1.1 Ethereum
 
@@ -91,15 +91,15 @@ Observations:
     1. the address of the invoker (the owner)
     2. the address of the state account where the counter is stored
     3. the address of the program account (the smart contract)
-    
-    **Solana requires us to specify in advance the accounts a transaction will interact with.** 
-    
-    This might seem tedious at first sight, but Solana needs the complete list of addresses involved in all the possible execution paths, so at the time of processing, the VM knows deterministically which transactions can be paralleled (they don’t depend or affect the same accounts), and which does and therefore, need to be executed sequentially. This is one of the main reasons behind Solana’s speed and reduced costs. 
-    
+
+    **Solana requires us to specify in advance the accounts a transaction will interact with.**
+
+    This might seem tedious at first sight, but Solana needs the complete list of addresses involved in all the possible execution paths, so at the time of processing, the VM knows deterministically which transactions can be paralleled (they don’t depend or affect the same accounts), and which does and therefore, need to be executed sequentially. This is one of the main reasons behind Solana’s speed and reduced costs.
+
 - `instructions`
-    
+
     An instruction can be thought of as a public function that can be executed on a program. The `instructions` field is an array, because there could be multiple instructions per transaction and every instruction can be called on a different program. Think of it as a batch-call.
-    
+
     - `accounts` - this array contains the indices from `accountKeys` of the accounts involved in this instruction, i.e. the owner and the state account
     - `programIdIndex` - this index maps to an address from `accountKeys` and it is the address of the program to be called
     - `data` - the base58-encoded value of the function name and its arguments (`increment()`)
@@ -110,9 +110,9 @@ Observations:
 - Ethereum transaction structure is simple and flat, while transactions from Stellar and Solana seem more complex.
 - In the Ethereum transaction, there is only one signer who signs the whole payload (r, s, yParity), while on Stellar and Solana we can have several signatures per transaction with more granular control of who signs and what, as we’ll see in the next section.
 
-## 2. Counter Contract: Fees Sponsorship
+## 2. Counter Contract: Fee Sponsorship
 
-So far, all transactions we observed were signed and paid by a single user, the owner. We continue our exploration with the same contracts, but this time we assume that the owner has no funds to cover the transaction cost. That’s why we will introduce another user who will cover that cost, i.e. the sponsor of the transaction fees. 
+So far, all transactions we observed were signed and paid by a single user, the owner. We continue our exploration with the same contracts, but this time we assume that the owner has no funds to cover the transaction cost. That’s why we will introduce another user who will cover that cost, i.e. **the sponsor** of the transaction fees.
 
 To demonstrate transaction fee sponsoring, we’ll start with Stellar and Solana, because the process is way more straightforward and intuitive than in Ethereum.
 
@@ -122,7 +122,7 @@ Stellar's authorization model offers significant flexibility through the `auth` 
 
 In other words, the signer of the transaction envelope doesn’t have to be the one authorizing the calls within it. Actual contract calls authorization is handled explicitly in the `auth` section. This separation allows one account to sponsor and submit a transaction, while another account’s signature provides the necessary authorization for the calls being performed.
 
-In the example below, the owner signs only the authorization for calling the `increment()` function, and another account, the sponsor**,** signs the entire transaction envelope and submits it on-chain by covering the fee.
+In the example below, the owner signs only the authorization for calling the `increment()` function, and another account, **the sponsor**, signs the entire transaction envelope and submits it on-chain by covering the fee.
 
 ![CounterSponsored call on Stellar](images/CounterSponsored_Stellar.jpg)
 
@@ -130,7 +130,7 @@ There are two key differences with the  previous transaction envelope where the 
 
 1. `source_acount` is now the address of the sponsor instead of the one of the owner,
 2. `credentials` evolved significantly. This is how the `credentials` field looked when the `source_account` was the owner
-    
+
     ![Authorizations-CounterSponsored (Stellar) snip 2.drawio.png](images/CounterSponsored_Stellar-snip-1.jpg)
     vs. now
     ![Authorizations-CounterSponsored (Stellar) - snip 1.drawio.png](images/CounterSponsored_Stellar-snip-2.jpg)
@@ -154,17 +154,19 @@ Solana’s approach is also quite intuitive and straightforward. By relying on t
 
 ### 2.3 Ethereum
 
-EIP-7702 is just one step in Ethereum’s broader move toward Account Abstraction and its adoption will be a important milestone. We will explore only the practical outcomes of this EIP and the way it affects the user flow and transaction structure in the fees sponsorship scenario. For more details on the EIP-7702 check [here](https://safe.global/blog/eip-7702-smart-accounts-ethereum-pectra-upgrade) and [here](https://www.youtube.com/watch?v=ZFN2bYt9gNE). We also need to mention the EIP-4337 which is another prominent proposal shaping the future of that area, but we won’t touch on it here.
+EIP-7702 is just one step in Ethereum’s broader move toward Account Abstraction and its adoption will be a important milestone. We will explore only the practical outcomes of this EIP and the way it affects the user flow and transaction structure in the context of fee sponsorship. For more details on the EIP-7702 check [here](https://safe.global/blog/eip-7702-smart-accounts-ethereum-pectra-upgrade) and [here](https://www.youtube.com/watch?v=ZFN2bYt9gNE).
+
+> We should also mention EIP-4337, another major proposal in Ethereum’s Account Abstraction roadmap. While we won’t cover it in detail here, as our focus is on what's changed with the Pectra upgrade, it’s worth exploring separately. EIP-4337 introduces the concept of a `UserOperation` that's a pseudo-transaction. For more details, check [here](https://docs.openzeppelin.com/community-contracts/0.0.1/account-abstraction#erc_4337_overview).
 
 In a nutshell, the EIP-7702 introduces a new type of transaction “type 4” that enables setting code for an EOA account (Externally Owned Account or a wallet account, controlled by private keys). Essentially, it allows an EOA to "borrow" code from an another contract and executes it.
 
-Let’s see on the practical side how the EIP-7702 enables fee sponsoring. Well, before it can work, a few conditions must be met:
+Let’s see on the practical side how the EIP-7702 enables fee sponsoring. Well... before it can work, a few conditions must be met:
 
 1. A trusted external contract whose code will be borrowed must be already deployed. We shall name it the [Delegate contract](https://github.com/brozorec/auth-mechanisms/blob/main/ethereum/src/Delegate.sol).
 2. The user sings the new transaction type (this happens only once)
 3. The sponsor submits the signed “type 4" transaction and pays the gas (this also happens only once).
 
-You can observe [here](https://github.com/brozorec/auth-mechanisms/blob/main/ethereum/script/counter-sponsored.sh) how the steps outlined above unfold. 
+You can observe [here](https://github.com/brozorec/auth-mechanisms/blob/main/ethereum/script/counter-sponsored.sh) how the steps outlined above unfold.
 
 Once the prerequisites are in place, we can look at the transaction where the owner authorizes only the call to `increment()`, while the sponsor covers the fees.
 
@@ -206,7 +208,7 @@ We’ll use the `Wrapper` contract example to see how each chain handles these c
 
 ### 3.1 Stellar
 
-Stellar's authorization mechanism is designed to handle complex interactions between smart contracts, allowing for partial authorizations and ensuring that only specific parts of a transaction are authorized by certain accounts. 
+Stellar's authorization mechanism is designed to handle complex interactions between smart contracts, allowing for partial authorizations and ensuring that only specific parts of a transaction are authorized by certain accounts.
 
 Imagine a scenario where Contract A calls Contract B, and Contract B then calls Contract C. This sequence forms a "tree" of contract calls. Accounts can authorize specific parts of this tree by giving permissions for a particular contract call without authorizing the entire sequence.
 
@@ -236,7 +238,7 @@ Stellar’s approach is quite flexible and very powerful. One might have some co
 
 ### 3.2 Solana
 
-We already saw that submitting a transaction on Solana requires listing of all accounts involved: program, state and wallets, and their signatures when necessary, by allowing partial signing. This pattern also applies to cross-contract calls or CPIs (”Cross Program Invocation” is how it is called on Solana). 
+We already saw that submitting a transaction on Solana requires listing of all accounts involved: program, state and wallets, and their signatures when necessary, by allowing partial signing. This pattern also applies to cross-contract calls or CPIs (”Cross Program Invocation” is how it is called on Solana).
 
 A key point here is that privileges and permissions from the caller program are extended to the callee program. This approach is different and less flexible than in Stellar and its authorization trees, though it is pretty straightforward. Another limitation to consider is that the callee program can make additional CPIs to other programs, up to a maximum depth of 4.
 
@@ -246,7 +248,7 @@ Compared to the previous transaction on Solana, we can see there is just another
 
 ### 3.3 Ethereum
 
-Cross-contract call forwarding with a partial authorization is not natively supported on Ethereum. When a contract calls a function on another contract, a new call frame is created and only the caller’s authorization is being passed through `msg.sender`. 
+Cross-contract call forwarding with a partial authorization is not natively supported on Ethereum. When a contract calls a function on another contract, a new call frame is created and only the caller’s authorization is being passed through `msg.sender`.
 
 When `Wrapper` calls `Counter`, `msg.sender` in `increment()` is no longer the owner or the sponsor, but the `Wrapper` contract itself. This limitation makes impossible to reproduce the same example as for Stellar and Solana. We can think of a workaround by making `increment()` check the authorization with a custom signature, but it's out of the scope of this exploration.
 
